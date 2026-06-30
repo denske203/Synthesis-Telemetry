@@ -7,9 +7,12 @@ class PhenotypicGatingPipeline:
         """
         self.engine = engine
         
-        # Hard historical validation thresholds established in the Master Key
+        # Historical validation thresholds from the Master Key
         self.BPD_Z_THRESHOLD = 2.0
         self.NPD_Z_THRESHOLD = 1.5
+        # Structural baselines for the remaining initial suite
+        self.AUTISM_Z_THRESHOLD = 2.0
+        self.DEPRESSION_Z_THRESHOLD = 1.5
 
     def process_subject_profile(self, intra_word, hard_boundary, post_stall, baseline_80th, cohort_stds=None):
         """
@@ -26,7 +29,6 @@ class PhenotypicGatingPipeline:
         lambda_coef = self.engine.extract_traction_recovery(clean_post_stall, baseline_80th)
         
         # 3. Standardize deviations relative to the N=3,153 population floor
-        # If cohort standard deviations aren't provided, default to standard normal normalization (1.0)
         std_lbir = cohort_stds.get('lbir', 1.0) if cohort_stds else 1.0
         std_lambda = cohort_stds.get('lambda', 1.0) if cohort_stds else 1.0
         
@@ -61,6 +63,16 @@ class PhenotypicGatingPipeline:
         # Quadrant IV Mask: Narcissistic Static Stance
         elif z_matrix >= self.NPD_Z_THRESHOLD and z_lbir < 0.0 and z_lambda >= 0.0:
             return "Quadrant IV: Narcissistic Static Stance (Ironclad Algorithmic Lockout)"
+            
+        # Autism Spectrum Mask: Hyper-Isolated Loop Rigidity
+        # Characterized by high global drift paired with extreme boundary insulation
+        elif z_matrix >= self.AUTISM_Z_THRESHOLD and z_lbir > 0.0 and z_lambda >= 0.0:
+            return "Autism Spectrum Configuration (Hyper-Isolated Operational Rigidity)"
+            
+        # Depressive Vector Mask: Kinetic Velocity Deceleration
+        # Characterized by massive post-stall recovery friction and motor stagnation
+        elif z_matrix >= self.DEPRESSION_Z_THRESHOLD and z_lambda < -1.5:
+            return "Depressive Vector (Kinetic Velocity Deceleration / Persistent Stagnation)"
             
         # Default State: Invariant Homeostatic Field Engagement
         else:
